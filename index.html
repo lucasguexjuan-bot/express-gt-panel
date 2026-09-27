@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07101f">
+<title>EXPRESS GT | Panel privado</title>
+<style>
+:root{--bg:#07101f;--card:#111b30;--field:#080f20;--line:#2b3854;--blue:#168cff;--muted:#91a0bd;--ok:#20d486;--danger:#ff6877}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#13284a 0,#07101f 45%);color:#fff;font-family:Arial,sans-serif;padding:18px}
+.wrap{max-width:520px;margin:auto}.card{background:rgba(17,27,48,.97);border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:0 20px 70px #0008}
+.brand{text-align:center;font-size:31px;font-weight:900;letter-spacing:.4px}.brand span{color:#168cff}.tag{text-align:center;color:var(--muted);margin:7px 0 22px}
+.section{margin-top:20px;margin-bottom:9px;font-size:12px;font-weight:900;letter-spacing:1px;color:#8291ad;text-transform:uppercase}
+label{display:block;margin:10px 0 7px;font-size:13px;font-weight:800}input,select{width:100%;height:52px;border-radius:13px;border:1px solid var(--line);background:var(--field);color:#fff;padding:0 15px;font-size:16px;outline:none}input:focus,select:focus{border-color:#168cff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:11px}button{width:100%;height:52px;border:0;border-radius:13px;margin-top:12px;background:var(--blue);color:#fff;font-weight:900;font-size:15px;cursor:pointer}button:disabled{opacity:.55}
+.secondary{background:#25334d}.status{text-align:center;min-height:22px;margin:11px 0 2px;font-weight:800}.ok{color:var(--ok)}.err{color:var(--danger)}.loading{color:#9bc9ff}
+.receipt{display:none;margin-top:22px;background:#fff;color:#111;border-radius:16px;padding:21px}.rhead{text-align:center;border-bottom:2px dashed #aaa;padding-bottom:13px}.rbrand{font-size:25px;font-weight:900}.rbrand span{color:#087fd7}.auth{margin:14px 0;background:#eef4fa;border-radius:10px;padding:11px;text-align:center}.auth small{display:block;color:#666;font-size:10px;font-weight:700}.auth strong{font-size:18px;letter-spacing:1px}.line{display:flex;justify-content:space-between;gap:16px;margin:10px 0}.line span:last-child{text-align:right;font-weight:700}.total{border-top:2px solid #222;padding-top:12px;margin-top:15px;font-size:21px;font-weight:900}.foot{text-align:center;color:#666;font-size:12px;line-height:1.5;margin-top:17px}.history{display:none;margin-top:18px}.histItem{background:#0b1426;border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:9px;font-size:13px}.histTop{display:flex;justify-content:space-between;font-weight:900}.muted{color:var(--muted);font-size:11px;margin-top:5px}
+.smallnote{color:#73819b;text-align:center;font-size:11px;line-height:1.45;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+<div class="brand">EXPRESS <span>GT</span></div>
+<div class="tag">Panel privado · Recibos de recargas Free Fire</div>
+
+<div class="section">Cliente</div>
+<label>ID de Free Fire</label>
+<input id="uid" inputmode="numeric" maxlength="15" placeholder="Ej. 5385708622">
+<button id="findBtn">🔎 BUSCAR JUGADOR</button>
+<div id="status" class="status"></div>
+
+<label>Nickname</label>
+<input id="nickname" readonly placeholder="Aparecerá automáticamente">
+
+<div class="section">Venta</div>
+<div class="row">
+<div><label>Diamantes</label>
+<select id="diamonds">
+<option value="110">110 💎</option>
+<option value="220">220 💎</option>
+<option value="341">341 💎</option>
+<option value="572">572 💎</option>
+<option value="1166">1,166 💎</option>
+<option value="2398">2,398 💎</option>
+<option value="6160">6,160 💎</option>
+</select></div>
+<div><label>Precio</label><input id="price" inputmode="decimal" value="10"></div>
+</div>
+
+<button id="makeBtn">🧾 GENERAR RECIBO</button>
+
+<div id="receipt" class="receipt">
+<div class="rhead">
+<div class="rbrand">EXPRESS <span>GT</span></div>
+<div>RECIBO DE RECARGA</div>
+<div style="font-size:12px;margin-top:5px">Vendido por EXPRESS GT</div>
+</div>
+<div class="auth"><small>N.º DE AUTORIZACIÓN</small><strong id="rAuth"></strong></div>
+<div class="line"><b>Fecha</b><span id="rDate"></span></div>
+<div class="line"><b>Hora</b><span id="rTime"></span></div><hr>
+<div class="line"><b>Cuenta</b><span id="rNick"></span></div>
+<div class="line"><b>ID Free Fire</b><span id="rUid"></span></div>
+<div class="line"><b>Diamantes</b><span id="rDia"></span></div>
+<div class="line total"><span>TOTAL PAGADO</span><span id="rPrice"></span></div>
+<div class="foot">Recarga registrada por EXPRESS GT.<br>Gracias por tu compra 💙</div>
+</div>
+
+<button id="waBtn" class="secondary" style="display:none">📲 COMPARTIR POR WHATSAPP</button>
+<button id="histBtn" class="secondary">📚 VER HISTORIAL</button>
+<div id="history" class="history"></div>
+
+<div class="smallnote">Este panel es para uso interno. El número de autorización es un identificador interno del recibo, no una factura electrónica de SAT.</div>
+</div></div>
+
+<script>
+const prices={110:10,220:20,341:30,572:45,1166:90,2398:170,6160:400};
+const $=id=>document.getElementById(id);
+$("diamonds").addEventListener("change",()=>{$("price").value=prices[$("diamonds").value]});
+function setStatus(t,c=""){ $("status").textContent=t; $("status").className="status "+c; }
+
+async function findPlayer(){
+ const uid=$("uid").value.trim();
+ if(!/^\d{5,15}$/.test(uid)){setStatus("Ingresa un ID válido de Free Fire.","err");return}
+ $("findBtn").disabled=true;$("nickname").value="";setStatus("Consultando jugador...","loading");
+ try{
+   const r=await fetch("/api/player?uid="+encodeURIComponent(uid),{cache:"no-store"});
+   const d=await r.json();
+   if(!r.ok || !d.nickname) throw new Error(d.error||"No encontrado");
+   $("nickname").value=d.nickname;
+   setStatus("✓ Jugador encontrado"+(d.region?" · "+d.region:""),"ok");
+ }catch(e){console.error(e);setStatus("No se encontró el jugador o el servicio no respondió.","err")}
+ finally{$("findBtn").disabled=false}
+}
+
+function authCode(date){
+ const y=String(date.getFullYear()).slice(-2),m=String(date.getMonth()+1).padStart(2,"0"),d=String(date.getDate()).padStart(2,"0");
+ const h=String(date.getHours()).padStart(2,"0"),n=String(date.getMinutes()).padStart(2,"0"),s=String(date.getSeconds()).padStart(2,"0");
+ const rnd=String(Math.floor(100+Math.random()*900));
+ return `EGT-${y}${m}${d}-${h}${n}${s}-${rnd}`;
+}
+function makeReceipt(){
+ const uid=$("uid").value.trim(),nick=$("nickname").value.trim();
+ if(!nick){alert("Primero busca el jugador.");return}
+ const now=new Date(), auth=authCode(now), dia=Number($("diamonds").value),price=Number($("price").value||0);
+ $("rAuth").textContent=auth;$("rDate").textContent=now.toLocaleDateString("es-GT");$("rTime").textContent=now.toLocaleTimeString("es-GT",{hour:"2-digit",minute:"2-digit"});
+ $("rNick").textContent=nick;$("rUid").textContent=uid;$("rDia").textContent=dia.toLocaleString("es-GT")+" 💎";$("rPrice").textContent="Q"+price.toFixed(2);
+ $("receipt").style.display="block";$("waBtn").style.display="block";
+ const item={auth,date:now.toLocaleDateString("es-GT"),time:now.toLocaleTimeString("es-GT",{hour:"2-digit",minute:"2-digit"}),nick,uid,dia,price};
+ const list=JSON.parse(localStorage.getItem("expressGT")||"[]");list.unshift(item);localStorage.setItem("expressGT",JSON.stringify(list.slice(0,100)));
+ $("receipt").scrollIntoView({behavior:"smooth"});
+}
+function shareWhatsApp(){
+ const text=`*EXPRESS GT*\n🧾 RECIBO DE RECARGA\n\n🔐 Autorización: ${$("rAuth").textContent}\n📅 Fecha: ${$("rDate").textContent}\n🕐 Hora: ${$("rTime").textContent}\n\n👤 Cuenta: ${$("rNick").textContent}\n🆔 ID: ${$("rUid").textContent}\n💎 Diamantes: ${$("rDia").textContent}\n💰 Total pagado: ${$("rPrice").textContent}\n\n✅ Recarga registrada por EXPRESS GT.\nGracias por tu compra 💙`;
+ location.href="https://wa.me/?text="+encodeURIComponent(text);
+}
+function showHistory(){
+ const list=JSON.parse(localStorage.getItem("expressGT")||"[]"),box=$("history");
+ box.style.display=box.style.display==="block"?"none":"block";
+ if(!list.length){box.innerHTML="<div class='muted'>Todavía no hay recibos guardados.</div>";return}
+ box.innerHTML=list.map(x=>`<div class="histItem"><div class="histTop"><span>${x.nick}</span><span>Q${Number(x.price).toFixed(2)}</span></div><div class="muted">ID ${x.uid} · ${x.dia.toLocaleString()} 💎 · ${x.date} ${x.time}<br>Autorización: ${x.auth}</div></div>`).join("");
+}
+$("findBtn").onclick=findPlayer;$("makeBtn").onclick=makeReceipt;$("waBtn").onclick=shareWhatsApp;$("histBtn").onclick=showHistory;
+$("uid").addEventListener("keydown",e=>{if(e.key==="Enter")findPlayer()});
+</script>
+</body></html>
